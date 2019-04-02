@@ -1,6 +1,6 @@
 var keys = [ "input", "buffer", "output" ];
 var queue = [];
-var move = [
+var moves = [
     [ "input", "buffer" ],
     [ "buffer", "output" ]
 ];
@@ -25,98 +25,31 @@ cameFrom[getId(start)] = null;
 costSoFar[getId(start)] = 0;
 queue.push(start);
 
+var end = null;
+
+while(!end) {
+    end = next();
+}
+
+console.log(end);
+
 function next() {
     var current = queue.shift();
-    var id;
     var neighbors = [];
 
 	if (!current) {
         throw new Error(":(");
     }
 
-    // var input = idify(current.input);
-    // var buffer = idify(current.buffer);
     var output = idify(current.output);
 
     if (output === expect) {
         return current;
     }
 
-    id = getId(current);
-
     // Calculate neighbors
-    current.input.forEach(function (i, iIndex) {
-        var neighbor = copy(current);
-        var nId;
-        var cost = costSoFar[id] + 0.05;
-
-        if (neighbor.input[iIndex].count !== null) {
-            neighbor.input[iIndex].count--;
-        }
-
-        if (neighbor.input[iIndex].count === 0) {
-            neighbor.input.splice(iIndex, 1);
-        }
-
-        var exists = neighbor.buffer.find(function (b) {
-            return b.name === i.name;
-        });
-
-        if (exists) {
-            var bIndex = neighbor.buffer.indexOf(exists);
-
-            neighbor.buffer[bIndex].count++;
-        } else {
-            neighbor.buffer.push({
-                name: i.name,
-                count: 1
-            });
-        }
-
-        nId = getId(neighbor);
-
-        if (!costSoFar[nId] || cost < costSoFar[nId]) {
-            costSoFar[nId] = cost;
-            queue.push(neighbor);
-            cameFrom[nId] = id;
-        }
-    });
-
-    current.buffer.forEach(function (b, bIndex) {
-        var neighbor = copy(current);
-        var nId;
-        var cost = costSoFar[id] + 0.05;
-
-        if (neighbor.buffer[bIndex].count !== null) {
-            neighbor.buffer[bIndex].count--;
-        }
-
-        if (neighbor.buffer[bIndex].count === 0) {
-            neighbor.buffer.splice(bIndex, 1);
-        }
-
-        var exists = neighbor.output.find(function (o) {
-            return o.name === b.name;
-        });
-
-        if (exists) {
-            var oIndex = neighbor.output.indexOf(exists);
-
-            neighbor.output[oIndex].count++;
-        } else {
-            neighbor.output.push({
-                name: b.name,
-                count: 1
-            });
-        }
-
-        nId = getId(neighbor);
-
-        if (!costSoFar[nId] || cost < costSoFar[nId]) {
-            costSoFar[nId] = cost;
-            queue.push(neighbor);
-            cameFrom[nId] = id;
-        }
+    moves.forEach(function (m) {
+        move(current, m[0], m[1]);
     });
 
     queue.sort(function (a, b) {
@@ -147,4 +80,45 @@ function idify(arr) {
     });
 
     return id;
+}
+
+function move(current, from, to) {
+    var id = getId(current);
+
+    current[from].forEach(function (f, fIndex) {
+        var neighbor = copy(current);
+        var nId;
+        var cost = costSoFar[id] + 0.05;
+
+        if (neighbor[from][fIndex].count !== null) {
+            neighbor[from][fIndex].count--;
+        }
+
+        if (neighbor[from][fIndex].count === 0) {
+            neighbor[from].splice(fIndex, 1);
+        }
+
+        var exists = neighbor[to].find(function (t) {
+            return t.name === f.name;
+        });
+
+        if (exists) {
+            var tIndex = neighbor[to].indexOf(exists);
+
+            neighbor[to][tIndex].count++;
+        } else {
+            neighbor[to].push({
+                name: f.name,
+                count: 1
+            });
+        }
+
+        nId = getId(neighbor);
+
+        if (!costSoFar[nId] || cost < costSoFar[nId]) {
+            costSoFar[nId] = cost;
+            queue.push(neighbor);
+            cameFrom[nId] = id;
+        }
+    });
 }
