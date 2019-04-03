@@ -1,37 +1,48 @@
-var keys = [ "input", "buffer", "output" ];
-var queue = [];
-var moves = [
-    [ "input", "buffer" ],
-    [ "buffer", "output" ]
-];
-var cameFrom = {};
-// var heuristic = {};
-var costSoFar = {};
-var start = {
-    input: [{
+var keys;
+var queue;
+var moves;
+var cameFrom;
+var costSoFar;
+var start;
+var expect;
+var done;
+
+setTimeout(init);
+
+function init() {
+    keys = [ "input", "buffer", "output" ];
+    queue = [];
+    moves = [
+        [ "input", "buffer" ],
+        [ "buffer", "output" ]
+    ];
+    cameFrom = {};
+    costSoFar = {};
+	start = {
+        input: [{
+            name: "Cobblestone",
+            count: 3
+        }],
+        buffer: [],
+        output: [], /** @TODO: heuristic(x => y) State changes? 3x3 crafting costs 9? Sticks cost 2? Elapsed time in machine? Each craft cost 1/20? **/
+    };
+    expect = idify([{
         name: "Cobblestone",
-        count: null
-    }],
-    buffer: [],
-    output: [], /** @TODO: heuristic(x => y) State changes? 3x3 crafting costs 9? Sticks cost 2? Elapsed time in machine? Each craft cost 1/20? **/
-};
-var expect = idify([{
-    name: "Cobblestone",
-    count: 3
-}]);
-var done = false;
+        count: 3
+    }]);
+    done = false;
+    cameFrom[getId(start)] = null;
+    costSoFar[getId(start)] = 0;
+    queue.push(start);
 
-cameFrom[getId(start)] = null;
-costSoFar[getId(start)] = 0;
-queue.push(start);
+    var end = null;
 
-var end = null;
+    while(!end) {
+        end = next();
+    }
 
-while(!end) {
-    end = next();
+    console.log(end);
 }
-
-console.log(end);
 
 function next() {
     var current = queue.shift();
@@ -88,7 +99,7 @@ function move(current, from, to) {
     current[from].forEach(function (f, fIndex) {
         var neighbor = copy(current);
         var nId;
-        var cost = costSoFar[id] + 0.05;
+        var cost = costSoFar[id] + 1;
 
         if (neighbor[from][fIndex].count !== null) {
             neighbor[from][fIndex].count--;
